@@ -14,7 +14,7 @@ class Profile(models.Model):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     openid = models.CharField(max_length=255)
     signature = models.CharField(max_length=1024)
-    registration_ip = models.IPAddressField(editable=False)
+    registration_ip = models.IPAddressField()
     created = models.DateTimeField('date created')
     updated = models.DateTimeField('date updated')
     last_online = models.DateTimeField('date last online')
@@ -39,8 +39,8 @@ class Post(models.Model):
     created = models.DateTimeField('date created')
     updated = models.DateTimeField('date updated')
     #parent = models.ForeignKey('self', blank=True)
-    hits = models.IntegerField(editable=False)
-    original_body = models.TextField(editable=False)
+    hits = models.IntegerField()
+    original_body = models.TextField()
     display_body = models.TextField()
 
     def __unicode__(self):
