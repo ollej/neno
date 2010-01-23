@@ -52,6 +52,15 @@ class Discussion(models.Model):
     updated = models.DateTimeField('date updated')
     slug = models.SlugField(max_length=255)
 
+    def get_posts(self):
+        """
+        Returns a QuerySet with all Posts in this Discussion.
+        """
+        posts = Post.objects.select_related().filter(discussion=self.id)
+        return posts
+
+    posts = property(get_posts)
+
     def __unicode__(self):
         return self.subject
 
