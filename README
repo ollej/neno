@@ -1,0 +1,29 @@
+Neno forum system
+A RESTful forum system with advanced personalized filtering.
+
+TODO:
+ * Add validation on fields.
+ * Create views.
+ X Add rest api resources.
+ * Add akismet checking on posts.
+ * Add IP ban.
+ * Find atom feed schema extension for discussions, or create one.
+   * Write AtomResponder for Django-rest-interface based on django-atompub
+ * Search functionality.
+   * Preferrably use google opensearch
+ * Prefill registration from OpenID with sreg
+
+
+Features:
+ * Each discussion is an atom feed.
+ * Ext-GWT frontend to display information.
+ * OpenID / Social registration
+ * Tagging system instead of forums.
+ * Advanced personalized filtering (public filters, group filters, combination of filters)
+   * Filters based on no hits, no replies, tags, poster, rating
+ * Attached files automatically sent to uploadbin.net or similar service.
+ * Plugin system to replace any internal code and add hooks.
+ * Hooks for saving / displaying posts etc.
+   * Post parsers: bbcode, censoring, emotes
+ * Dynamic extra profile fields.
+ * Fully translatable.
