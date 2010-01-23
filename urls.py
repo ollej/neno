@@ -10,6 +10,7 @@ from django_restapi.responder import XMLResponder
 from django.contrib.syndication.feeds import Feed
 from django.utils import feedgenerator
 from django.utils.feedgenerator import Atom1Feed
+from django.core.urlresolvers import reverse
 from neno.forum.models import Discussion, Post, Profile
 
 """
@@ -24,79 +25,29 @@ xml_discussion_collection = Collection(
     responder = XMLResponder(paginate_by = 10)
 )
 
-class DiscussionAtomFeed(Feed):
-    feed_type = Atom1Feed
-
-    def set_object(self, obj):
-        self.obj = obj
-
-    def get_object(self, bits):
-        # If there already is an object set, just return that.
-        if self.obj:
-            return self.obj
-        # In case of "/rss/beats/0613/foo/bar/baz/", or other such clutter,
-        # check that bits has only one member.
-        if len(bits) != 1:
-            raise ObjectDoesNotExist
-        return Discussion.objects.get(id__exact=bits[0])
-
-    def items(self, obj):
-        return obj.posts
-
-    def title(self, obj):
-        return obj.subject
-
-    def subtitle(self, obj):
-        return "Posts in the Discussion about: " + obj.subject
-
-    def author_name(self, obj):
-        return obj.posts[0].author.name
-
-    def author_email(self, obj):
-        return obj.posts[0].author.email
-
-    def author_link(self, obj):
-        return obj.posts[0].author.homepage
-
-    def link(self, obj):
-        if not obj:
-            raise FeedDoesNotExist
-        return "discussion/" + obj.id
-
-    def item_author_name(self, item):
-        return item.author.name
-
-    def item_author_email(self, item):
-        return item.author.email
-
-    def item_author_link(self, item):
-        return item.author.homepage
-
-    def item_pubdate(self, item):
-        return item.updated
-
 class AtomDiscussionResponder(XMLResponder):
     def render(self, object_list):
         """
         Serializes the first Discussion object in object_list into an Atom feed.
         """
         obj = object_list[0]
+        posts = obj.posts
         f = feedgenerator.Atom1Feed(
             title=obj.subject,
-            link='',
-            description='',
-            subtitle='Discussion about: ' + obj.subject,
-            feed_url='http://localhost:8000/api/discussion/' + str(obj.id),
-            id='http://localhost:8000/api/discussion/' + str(obj.id),
-            guid='http://localhost:8000/api/discussion/' + str(obj.id),
-            author_name=obj.posts[0].author.name,
-            author_email=obj.posts[0].author.email,
-            author_link=obj.posts[0].author.homepage,
+            description='Discussion: ' + obj.subject,
+            subtitle='Discussion: ' + obj.subject,
+            link=obj.get_absolute_url(),
+            feed_url=obj.get_absolute_url(),
+            id='api/discussions/' + str(obj.id),
+            guid=obj.get_absolute_url(),
+            author_name=obj.author.name,
+            author_email=obj.author.email,
+            author_link=obj.author.homepage,
         )
         for p in obj.posts:
             f.add_item(
                 title=p.subject,
-                link='http://localhost:8000/api/posts/' + str(p.id),
+                link=p.get_url(),
                 description=p.display_body,
                 author_email=p.author.email,
                 author_name=p.author.name,
@@ -104,11 +55,6 @@ class AtomDiscussionResponder(XMLResponder):
                 pubdate=p.created
             )
         response = f.writeString("UTF-8")
-        #obj = object_list[0]
-        #atom = AtomFeed(atom_id, obj.subject, obj.updated, obj.posts[0].icon.name, '', '', '', obj.posts[0].author.name)
-        #for p in object_list.posts:
-        #    atom.add_item(atom_id, p.subject, p.updated, p.display_body, '', '', '', '', p.author.name)
-        #response = atom.get_feed()
         return response
 
 class DiscussionFeed(Collection):
@@ -202,10 +148,10 @@ xml_profile_resource = Collection(
 urlpatterns = patterns('',
     # Example:
     # (r'^neno/', include('neno.foo.urls')),
-    url(r'^api/discussions/?$', xml_discussion_collection),
-    url(r'^api/discussion/(.+?)/?$', xml_discussion_feed),
-    url(r'^api/posts/(.*?)/?$', xml_post_collection),
-    url(r'^api/profiles/(.*?)/?$', xml_profile_resource),
+    url(r'^api/discussions/?$', xml_discussion_collection, name='discussions'),
+    url(r'^api/discussion/(.+?)/?$', xml_discussion_feed, name='discussion'),
+    url(r'^api/posts/(.*?)/?$', xml_post_collection, name='posts'),
+    url(r'^api/profiles/(.*?)/?$', xml_profile_resource, name='profile'),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:

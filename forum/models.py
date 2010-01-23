@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import permalink
+from django.core.urlresolvers import reverse
 
 class Profile(models.Model):
     GENDER_CHOICES = (
@@ -18,6 +20,10 @@ class Profile(models.Model):
     created = models.DateTimeField('date created')
     updated = models.DateTimeField('date updated')
     last_online = models.DateTimeField('date last online')
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('profile', [str(self.id)])
 
     def __unicode__(self):
         return self.name + "(" + self.email + ")"
@@ -43,6 +49,13 @@ class Post(models.Model):
     original_body = models.TextField()
     display_body = models.TextField()
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('posts', [str(self.id)])
+
+    def get_url(self):
+        return 'api/posts/' + str(self.id)
+
     def __unicode__(self):
         return self.subject
 
@@ -51,6 +64,21 @@ class Discussion(models.Model):
     created = models.DateTimeField('date created')
     updated = models.DateTimeField('date updated')
     slug = models.SlugField(max_length=255)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('discussion', [str(self.id)])
+
+    def get_url(self):
+        return 'discussion/' + str(id)
+
+    url = property(get_url)
+
+    def get_author(self):
+        if self.posts[0]:
+            return self.posts[0].author
+
+    author = property(get_author)
 
     def get_posts(self):
         """
