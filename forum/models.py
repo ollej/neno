@@ -10,7 +10,7 @@ class Profile(models.Model):
     name = models.CharField(max_length=255, unique=True)
     email = models.EmailField(max_length=255, unique=True, blank=False)
     homepage = models.URLField(max_length=255, verify_exists=True)
-    #avatar = models.ImageField(upload_to='avatar')
+    avatar = models.ImageField(upload_to='avatar')
     title = models.CharField(max_length=255)
     birth_date = models.DateField()
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
@@ -42,10 +42,18 @@ class Profile(models.Model):
         return self.name + "(" + self.email + ")"
 
 class Icon(models.Model):
-    #image = models.ImageField(upload_to='icon')
+    image = models.ImageField(upload_to='icon')
     name = models.CharField(max_length=50)
     updated = models.DateTimeField('date updated')
     created = models.DateTimeField('date created')
+
+    def image_html(self):
+        if not self.image:
+            return '<img src="" alt="" />'
+        return u'<img src="%s" alt="%s" width="%d" height="%d" />' % \
+                ((self.image.url), (self.name), (self.image.width), (self.image.height))
+    image_html.short_description = 'Icon'
+    image_html.allow_tags = True
 
     def __unicode__(self):
         return self.name
@@ -90,6 +98,7 @@ class Discussion(models.Model):
     created = models.DateTimeField('date created')
     updated = models.DateTimeField('date updated')
     slug = models.SlugField(max_length=255)
+    main_post = models.ForeignKey('Post', related_name='main_post', blank=False, null=False)
 
     @models.permalink
     def get_absolute_url(self):
@@ -99,17 +108,9 @@ class Discussion(models.Model):
         return 'discussion/' + str(id)
     url = property(get_url)
 
-    def get_posts(self):
-        """
-        Returns a QuerySet with all Posts in this Discussion.
-        """
-        posts = Post.objects.select_related().filter(discussion=self.id)
-        return posts
-    posts = property(get_posts)
-
     def get_author(self):
-        if self.posts[0]:
-            return self.posts[0].author
+        if self.main_post:
+            return self.main_post.author
         return Author()
     author = property(get_author)
 
@@ -130,11 +131,19 @@ class Discussion(models.Model):
         return self.subject
 
 class Emote(models.Model):
-    #image = models.ImageField(upload_to='emote')
+    image = models.ImageField(upload_to='emote')
     name = models.CharField(max_length=50)
     code = models.CharField(max_length=5)
     updated = models.DateTimeField('date updated')
     created = models.DateTimeField('date created')
+
+    def image_html(self):
+        if not self.image:
+            return '<img src="" alt="" />'
+        return u'<img src="%s" alt="%s" width="%d" height="%d" />' % \
+                ((self.image.url), (self.name), (self.image.width), (self.image.height))
+    image_html.short_description = 'Icon'
+    image_html.allow_tags = True
 
     def __unicode__(self):
         return self.name

@@ -27,12 +27,12 @@ class ProfileAdmin(admin.ModelAdmin):
 class EmoteAdmin(admin.ModelAdmin):
     list_filter = ['created']
     date_hierarchy = 'created'
-    list_display = ['id', 'name', 'code', 'created']
+    list_display = ['id', 'image_html', 'name', 'code', 'created']
 
 class IconAdmin(admin.ModelAdmin):
     list_filter = ['created']
     date_hierarchy = 'created'
-    list_display = ['id', 'name', 'created']
+    list_display = ['id', 'image_html', 'name', 'created']
 
 admin.site.register(Post, PostAdmin)
 admin.site.register(Discussion, DiscussionAdmin)

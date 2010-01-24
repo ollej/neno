@@ -2,9 +2,10 @@
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+LOCAL_DEVELOPMENT = True
 
 ADMINS = (
-    # ('Olle Johansson', 'Olle@Johansson.com'),
+    ('Olle Johansson', 'Olle@Johansson.com'),
 )
 
 MANAGERS = ADMINS
@@ -40,12 +41,12 @@ MEDIA_ROOT = '/Users/olle/Documents/Development/python/neno/media'
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 't@m3aire^eqp@#6ra0nm9frzw((rf%z@s26iof2&5fhkt&$f(v'
@@ -81,3 +82,12 @@ INSTALLED_APPS = (
     'tagging',
     'neno.forum',
 )
+
+DATE_FORMAT='Y-m-d'
+DATETIME_FORMAT='Y-m-d H:i:s'
+TIME_FORMAT='H:i:s'
+SHORT_DATE_FORMAT='Ymd'
+SHORT_DATETIME_FORMAT='Ymd H:i'
+FIRST_DAY_OF_WEEK=1
+THOUSAND_SEPARATOR=' '
+USE_THOUSAND_SEPARATOR=True

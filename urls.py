@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from django.conf import settings
 
 # Activate admin interface
 from django.contrib import admin
@@ -74,14 +75,14 @@ class AtomDiscussionResponder(XMLResponder):
             author_email=obj.author.email,
             author_link=obj.author.homepage,
         )
-        for p in obj.posts:
+        for p in obj.post_set.all():
             f.add_item(
-                title=p.subject,
-                link=p.get_url(),
-                description=p.display_body,
-                author_email=p.author.email,
-                author_name=p.author.name,
-                author_link=p.author.homepage,
+                title=p.atom['title'],
+                link=p.atom['link'],
+                description=p.atom['description'],
+                author_email=p.atom['author_email'],
+                author_name=p.atom['author_name'],
+                author_link=p.atom['author_link'],
                 pubdate=p.created
             )
         response = f.writeString("UTF-8")
@@ -121,7 +122,7 @@ class DiscussionFeed(Collection):
         Deletes a discussion and all containing Posts.
         TODO: Needs permission check.
         """
-        for p in self.model.posts:
+        for p in self.model.post_set.all():
             p.delete()
         self.model.delete()
         return HttpResponse(_("Discussion successfully deleted."), self.collection.responder.mimetype)
@@ -192,3 +193,10 @@ urlpatterns = patterns('',
     # django-openid
 )
 
+# Serve media files locally
+if settings.LOCAL_DEVELOPMENT:
+    urlpatterns += patterns("django.views",
+        url(r"%s(?P<path>.*)/$" % settings.MEDIA_URL[1:], "static.serve", {
+            "document_root": settings.MEDIA_ROOT,
+        })
+    )
