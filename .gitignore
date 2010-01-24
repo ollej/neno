@@ -1,2 +1,6 @@
 *.pyc
 sqlite.db
+*.json
+*.swp
+fab.cfg
+media
