@@ -8,8 +8,9 @@ TODO:
  * Add akismet checking on posts.
  * Add IP ban.
  * Find atom feed schema extension for discussions, or create one.
-   * Write AtomResponder for Django-rest-interface based on django-atompub
-   * Add get_atom methods on models to be read by AtomResponder
+   X Write AtomResponder for Django-rest-interface based on django-atompub
+   X Add get_atom methods on models to be read by AtomResponder
+   * Use Atom extensions rfc5005 for paging and rfc4685 for threading.
  * Search functionality.
    * Preferrably use google opensearch
  * Prefill registration from OpenID with sreg
