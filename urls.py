@@ -25,13 +25,43 @@ xml_discussion_collection = Collection(
     responder = XMLResponder(paginate_by = 10)
 )
 
+class AtomResponder(XMLResponder):
+    def render(self, object_list):
+        """
+        Serializes the objects in object_list into an Atom feed.
+        """
+        f = feedgenerator.Atom1Feed(
+            title='Post list',
+            description='List of posts',
+            subtitle='List of posts',
+            link='',
+            feed_url='',
+            id='/posts',
+            guid='',
+            author_name='',
+            author_email='',
+            author_link='',
+        )
+        for o in object_list:
+            f.add_item(
+                title=o.atom['title'],
+                link=o.atom['link'],
+                description=o.atom['description'],
+                author_email=o.atom['author_email'],
+                author_name=o.atom['author_name'],
+                author_link=o.atom['author_link'],
+                pubdate=o.created
+            )
+        response = f.writeString("UTF-8")
+        return response
+
+
 class AtomDiscussionResponder(XMLResponder):
     def render(self, object_list):
         """
         Serializes the first Discussion object in object_list into an Atom feed.
         """
         obj = object_list[0]
-        posts = obj.posts
         f = feedgenerator.Atom1Feed(
             title=obj.subject,
             description='Discussion: ' + obj.subject,
@@ -60,7 +90,6 @@ class AtomDiscussionResponder(XMLResponder):
 class DiscussionFeed(Collection):
     def get_entry(self, did):
         d = Discussion.objects.get(id=int(did))
-        posts = d.posts
         entry = self.entry_class(self, d)
         return entry
 
@@ -92,10 +121,10 @@ class DiscussionFeed(Collection):
         Deletes a discussion and all containing Posts.
         TODO: Needs permission check.
         """
-        for p in Post.objects.filter(discussion=self.model):
+        for p in self.model.posts:
             p.delete()
         self.model.delete()
-        return HttpResponse(_("Object successfully deleted."), self.collection.responder.mimetype)
+        return HttpResponse(_("Discussion successfully deleted."), self.collection.responder.mimetype)
         # ...
 
 """
@@ -127,7 +156,7 @@ TODO: Should be custom class for a single entry.
 xml_post_collection = Collection(
     queryset = Post.objects.all(),
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-    responder = XMLResponder(paginate_by = 10)
+    responder = AtomResponder(paginate_by = 10)
 )
 
 """"
@@ -142,7 +171,7 @@ DELETE = Delete a profile.
 xml_profile_resource = Collection(
     queryset = Profile.objects.all(),
     permitted_methods = ('GET', 'POST', 'PUT', 'DELETE'),
-    responder = XMLResponder(paginate_by = 10)
+    responder = AtomResponder(paginate_by = 10)
 )
 
 urlpatterns = patterns('',

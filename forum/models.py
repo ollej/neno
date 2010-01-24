@@ -25,6 +25,19 @@ class Profile(models.Model):
     def get_absolute_url(self):
         return ('profile', [str(self.id)])
 
+    def get_atom(self):
+        atom = dict(
+            title = self.name,
+            description = self.signature,
+            link = self.get_absolute_url(),
+            author_name = self.name,
+            author_email = self.email,
+            author_link = self.homepage,
+            pubdate = self.created,
+        )
+        return atom
+    atom = property(get_atom)
+
     def __unicode__(self):
         return self.name + "(" + self.email + ")"
 
@@ -56,6 +69,19 @@ class Post(models.Model):
     def get_url(self):
         return 'api/posts/' + str(self.id)
 
+    def get_atom(self):
+        atom = dict(
+            title = self.subject,
+            description = self.display_body,
+            link = self.get_absolute_url(),
+            author_name = self.author.name,
+            author_email = self.author.email,
+            author_link = self.author.homepage,
+            pubdate = self.created,
+        )
+        return atom
+    atom = property(get_atom)
+
     def __unicode__(self):
         return self.subject
 
@@ -71,14 +97,7 @@ class Discussion(models.Model):
 
     def get_url(self):
         return 'discussion/' + str(id)
-
     url = property(get_url)
-
-    def get_author(self):
-        if self.posts[0]:
-            return self.posts[0].author
-
-    author = property(get_author)
 
     def get_posts(self):
         """
@@ -86,8 +105,26 @@ class Discussion(models.Model):
         """
         posts = Post.objects.select_related().filter(discussion=self.id)
         return posts
-
     posts = property(get_posts)
+
+    def get_author(self):
+        if self.posts[0]:
+            return self.posts[0].author
+        return Author()
+    author = property(get_author)
+
+    def get_atom(self):
+        atom = dict(
+            title = self.subject,
+            description = self.slug,
+            link = self.get_absolute_url(),
+            author_name = self.author.name,
+            author_email = self.author.email,
+            author_link = self.author.homepage,
+            pubdate = self.created,
+        )
+        return atom
+    atom = property(get_atom)
 
     def __unicode__(self):
         return self.subject
