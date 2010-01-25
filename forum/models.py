@@ -98,7 +98,7 @@ class Discussion(models.Model):
     created = models.DateTimeField('date created')
     updated = models.DateTimeField('date updated')
     slug = models.SlugField(max_length=255)
-    main_post = models.ForeignKey('Post', related_name='main_post', blank=False, null=False)
+    main_post = models.ForeignKey('Post', related_name='main_post', blank=True, null=True)
 
     @models.permalink
     def get_absolute_url(self):
