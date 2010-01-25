@@ -1,0 +1,28 @@
+Installation
+
+Step 1:
+Install Django and create a new project.
+
+Step 2:
+Place the neno/forum directory in your Django project directory.
+
+Step 3:
+Add "neno.forum" to your list of applications in settings.py.
+
+Step 4:
+Add the following line to your urlpatterns in urls.py:
+
+    (r'^api/', include('neno.forum.urls')),
+
+Step 5:
+Sync your Django project database to create necessary tables.
+
+    python manage.py syncdb
+
+Step 6:
+The Django REST Interface needs to be installed by hand:
+
+Step 6.1: Checkout from Subversion repository
+  svn checkout http://django-rest-interface.googlecode.com/svn/trunk/ django-rest-interface 
+
+Step 6.2: Add the django-rest-interface directory to your PYTHONPATH.
