@@ -72,10 +72,10 @@ class Post(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('posts', [str(self.id)])
+        return ('post', [str(self.id)])
 
     def get_url(self):
-        return 'api/posts/' + str(self.id)
+        return 'api/post/' + str(self.id)
 
     def get_atom(self):
         atom = dict(

@@ -3,9 +3,10 @@ from neno.forum.rest_api import *
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
-    url(r'^discussions/?$', xml_discussion_collection, name='discussions'),
-    url(r'^discussion/(.+?)/?$', xml_discussion_feed, name='discussion'),
-    url(r'^posts/(.*?)/?$', xml_post_collection, name='posts'),
-    url(r'^profiles/(.*?)/?$', xml_profile_resource, name='profile'),
+    url(r'^discussions/?$', atom_discussions_feed, name='discussions'),
+    url(r'^discussion/(.+?)/?$', atom_discussion_resource, name='discussion'),
+    url(r'^post/(.*?)/?$', atom_post_resource, name='post'),
+    url(r'^profiles/?$', atom_profile_collection, name='profiles'),
+    url(r'^profile/(.*?)/?$', atom_profile_resource, name='profile'),
 )
 
