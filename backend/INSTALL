@@ -26,3 +26,10 @@ Step 6.1: Checkout from Subversion repository
   svn checkout http://django-rest-interface.googlecode.com/svn/trunk/ django-rest-interface 
 
 Step 6.2: Add the django-rest-interface directory to your PYTHONPATH.
+
+Step 7:
+Install required python packages:
+
+    easy_install tagging
+    easy_install pil
+
