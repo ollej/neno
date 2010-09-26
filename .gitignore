@@ -4,3 +4,4 @@ sqlite.db
 *.swp
 fab.cfg
 media
+neno.db
