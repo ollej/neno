@@ -9,6 +9,7 @@ import com.extjs.gxt.ui.client.widget.layout.BorderLayoutData;
 import com.extjs.gxt.ui.client.Style.LayoutRegion;
 import com.google.gwt.user.client.ui.DecoratorPanel;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
+import com.extjs.gxt.ui.client.widget.MessageBox;
 import com.extjs.gxt.ui.client.widget.TabPanel;
 import com.extjs.gxt.ui.client.widget.TabItem;
 import com.extjs.gxt.ui.client.widget.LayoutContainer;
@@ -26,8 +27,23 @@ import com.extjs.gxt.ui.client.widget.ListView;
 import com.extjs.gxt.ui.client.store.ListStore;
 import com.extjs.gxt.ui.client.widget.layout.CardLayout;
 import com.extjs.gxt.ui.client.widget.form.SimpleComboBox;
+import com.extjs.gxt.ui.client.event.SelectionListener;
+import com.extjs.gxt.ui.client.event.ButtonEvent;
+import com.extjs.gxt.ui.client.data.BaseListLoader;
+import com.extjs.gxt.ui.client.data.HttpProxy;
+import com.extjs.gxt.ui.client.data.ListLoadResult;
+import com.extjs.gxt.ui.client.data.ModelData;
+import com.extjs.gxt.ui.client.data.ModelType;
+import com.extjs.gxt.ui.client.data.XmlLoadResultReader;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.RequestBuilder;
+import com.extjs.gxt.ui.client.event.MessageBoxEvent;
+import com.extjs.gxt.ui.client.widget.MessageBox;
+import com.extjs.gxt.ui.client.event.Listener;
 
 public class Discussions extends Window {
+	private TabPanel discussionTabPanel;
+	private ContentPanel discussionPanel;
 
 	public Discussions() {
 		// Window config
@@ -36,22 +52,19 @@ public class Discussions extends Window {
 		setLayout(new BorderLayout());
 		
 		// Home tab panel
-		TabPanel tabPanel = new TabPanel();		
+		discussionTabPanel = new TabPanel();		
 		TabItem homeTab = getHomeTabPanel();
-		tabPanel.add(homeTab);
-		
-		// Empty discussion panel, for testing purposes
-		TabItem discussionListPanel = getDiscussionTabPanel("Discussion");
-		tabPanel.add(discussionListPanel);
-		
-		add(tabPanel, new BorderLayoutData(LayoutRegion.CENTER));
+		discussionTabPanel.add(homeTab);
+				
+		add(discussionTabPanel, new BorderLayoutData(LayoutRegion.CENTER));
 
 		// Navigation panel
-		ContentPanel cntntpnlDiscussions = getDiscussionsCardPanel();
-		ContentPanel discussionsPanel = getDiscussionsPanel();
-		cntntpnlDiscussions.add(discussionsPanel);
+		discussionPanel = getDiscussionsCardPanel();
+//		ListStore store = new ListStore();
+//		ContentPanel discussionsPanel = getDiscussionsPanel("Discussions", store);
+//		discussionPanel.add(discussionsPanel);
 		
-		add(cntntpnlDiscussions, new BorderLayoutData(LayoutRegion.WEST, 240.0f));
+		add(discussionPanel, new BorderLayoutData(LayoutRegion.WEST, 240.0f));
 	}
 
 	/**
@@ -67,6 +80,17 @@ public class Discussions extends Window {
 		
 		// Add board button
 		Button btnNewBoard = new Button("Add Board");
+		btnNewBoard.addSelectionListener(new SelectionListener<ButtonEvent>() {
+			public void componentSelected(ButtonEvent e) {
+			}
+			public void handleEvent(ButtonEvent e) {
+				MessageBox.prompt("Add Board", "Enter the URL to the discussion list to view:", new Listener<MessageBoxEvent>() {
+					public void handleEvent(MessageBoxEvent be) {
+						addDiscussionList(be.getValue());
+					}
+				});
+			}
+		});
 		discussionSelectionTB.add(btnNewBoard);
 		
 		FillToolItem fillToolItem = new FillToolItem();
@@ -86,6 +110,43 @@ public class Discussions extends Window {
 		cntntpnlDiscussions.setLayout(new CardLayout());
 		
 		return cntntpnlDiscussions;
+	}
+	
+	public void addDiscussionList(String url) {
+		ListStore<ModelData> store = getDiscussionsStore(url);
+		ContentPanel cp = getDiscussionsPanel("Discussions", store);
+		discussionPanel.add(cp);
+		store.getLoader().load();
+		discussionPanel.layout();
+	}
+	
+	public ListStore<ModelData> getDiscussionsStore(String url) {
+		// use a http proxy to get the data
+		// http://127.0.0.1:8000/api/discussions
+	    // defines the xml structure
+	    ModelType type = new ModelType();
+	    type.setRoot("feed");
+	    type.setRecordName("entry");
+	    type.addField("id");
+	    type.addField("link");
+	    type.addField("subject", "title");
+	    type.addField("slug", "summary");
+	    type.addField("updated");
+	    type.addField("author", "author/name");
+	    
+	    RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, url);
+	    HttpProxy<String> proxy = new HttpProxy<String>(builder);
+
+	    // need a loader, proxy, and reader
+	    XmlLoadResultReader<ListLoadResult<ModelData>> reader = new XmlLoadResultReader<ListLoadResult<ModelData>>(
+	        type);
+
+	    final BaseListLoader<ListLoadResult<ModelData>> loader = new BaseListLoader<ListLoadResult<ModelData>>(
+	        proxy, reader);
+
+		ListStore<ModelData> store = new ListStore<ModelData>(loader);
+		
+		return store;
 	}
 
 	/**
@@ -107,7 +168,7 @@ public class Discussions extends Window {
 	public TabItem getDiscussionTabPanel(String title) {
 		TabItem discussionListPanel = new TabItem(title);
 		
-		ListView listView = new ListView(new ListStore());
+		ListView listView = new ListView(new ListStore<ModelData>());
 		listView.setTemplate("<table>\n<tpl for=\".\">\n<tr>\n<td class=\"nenoPostSubject\" colspan=\"3\">\n{subject}\n</td>\n</tr>\n<tr>\n<td class=\"nenoPostIcon\">{icon.image}</td>\n<td class=\"nenoPostAuthor\">{author.name}</td>\n<td class=\"nenoPostCreated\">{created}</td>\n</tr>\n<tr>\n<td class=\"nenoPostBody\" colspan=\"3\">\n{display_body}\n</td>\n</tr>\n</tpl>\n</table>");
 		discussionListPanel.add(listView);
 		return discussionListPanel;
@@ -116,16 +177,16 @@ public class Discussions extends Window {
 	/**
 	 * @return ContentPanel
 	 */
-	public ContentPanel getDiscussionsPanel() {
+	public ContentPanel getDiscussionsPanel(String title, ListStore store) {
 		ContentPanel discussionsPanel = new ContentPanel();
 		discussionsPanel.setHeaderVisible(true);
-		discussionsPanel.setHeading("Discussions");
+		discussionsPanel.setHeading(title);
 		discussionsPanel.setCollapsible(false);
 		discussionsPanel.setLayout(new FitLayout());
 		
-		ListView listView = new ListView(new ListStore());
+		ListView listView = new ListView(store);
 		discussionsPanel.add(listView);
-		listView.setTemplate("<table>\n<tpl for=\".\">\n<tr class=\"nenoTopicRow\">\n<td class=\"nenoSubject\">{subject}</td>\n<td class=\"nenoAuthor\">{author}</td>\n<td class=\"nenoCreated\">{created}</td>\n</tr>\n<tr>\n<td colspan=\"3\" class=\"nenoSlug\">{slug}</td>\n</tr>\n</tpl>\n</table>");
+		listView.setTemplate("<table>\n<tpl for=\".\">\n<tr class=\"nenoTopicRow\">\n<td class=\"nenoSubject\">{subject}</td>\n<td class=\"nenoAuthor\">{author}</td>\n<td class=\"nenoUpdated\">{updated}</td>\n</tr>\n<tr>\n<td colspan=\"3\" class=\"nenoSlug\">{slug}</td>\n</tr>\n</tpl>\n</table>");
 		
 		ToolBar discussionFilterTB = new ToolBar();
 		
